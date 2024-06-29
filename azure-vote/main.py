@@ -5,28 +5,31 @@ import socket
 import logging
 
 # App Insights
-from opencensus.ext.azure.log_exporter import AzureLogHandler
+from opencensus.ext.azure.log_exporter import AzureEventHandler
 from opencensus.ext.azure import metrics_exporter
 from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
 
+connectionString = 'InstrumentationKey=3432435e-3359-4271-8794-d18f0f89dbb2'
+
 # Logging
 logger = logging.getLogger(__name__)
-handler = AzureLogHandler(connection_string='InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4')
+handler = AzureEventHandler(connection_string=connectionString)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
+logger.info('Hello, Nguyen Hai Dang')
 
 # Metrics
 exporter = metrics_exporter.new_metrics_exporter(
   enable_standard_metrics=True,
-  connection_string='InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4')
+  connection_string=connectionString)
 
 # Tracing
 tracer = Tracer(
     exporter=AzureExporter(
-        connection_string='InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4'),
+        connection_string=connectionString),
     sampler=ProbabilitySampler(1.0),
 )
 
@@ -35,7 +38,7 @@ app = Flask(__name__)
 # Requests
 middleware = FlaskMiddleware(
     app,
-    exporter=AzureExporter(connection_string="InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4"),
+    exporter=AzureExporter(connection_string=connectionString),
     sampler=ProbabilitySampler(rate=1.0),
 )
 
@@ -81,10 +84,8 @@ def index():
 
             
         vote2 = r.get(button2).decode('utf-8')
-        # TODO: use tracer object to trace dog vote
         with tracer.span(name='dog_vote') as span:
             print("Dogs Vote")
-        # Return index with values
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
     elif request.method == 'POST':
@@ -96,12 +97,10 @@ def index():
             r.set(button2,0)
             vote1 = r.get(button1).decode('utf-8')
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
-            # TODO: use logger object to log cat vote
             logger.info('Cats Vote', extra=properties)
 
             vote2 = r.get(button2).decode('utf-8')
             properties = {'custom_dimensions': {'Dogs Vote': vote2}}
-            # TODO: use logger object to log dog vote
             logger.info('Dogs Vote', extra=properties)
 
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
@@ -111,6 +110,12 @@ def index():
             # Insert vote result into DB
             vote = request.form['vote']
             r.incr(vote,1)
+
+            vote0 = r.get(vote).decode('utf-8')
+            
+            # log current vote
+            properties = {'custom_dimensions': {'{}_vote'.format(vote): vote0}}
+            logger.info('new_{}_vote'.format(vote), extra=properties)
 
             # Get current values
             vote1 = r.get(button1).decode('utf-8')
