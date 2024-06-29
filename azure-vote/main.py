@@ -105,6 +105,11 @@ def index():
             # Insert vote result into DB
             vote = request.form['vote']
             r.incr(vote,1)
+            
+            # Log the vote property
+            voteProps = r.get(vote).decode('utf-8')
+            properties = {'custom_dimensions': {'{}_vote'.format(vote): voteProps}}
+            logger.info('new_{}_voting'.format(vote), extra=properties)
 
             # Get current values
             vote1 = r.get(button1).decode('utf-8')
