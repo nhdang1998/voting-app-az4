@@ -14,7 +14,7 @@ from opencensus.trace.tracer import Tracer
 
 # Logging
 logger = logging.getLogger(__name__)
-handler = AzureLogHandler(connection_string='InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4'))
+handler = AzureLogHandler(connection_string='InstrumentationKey=25514f83-53ae-4b8d-abdc-3cac1d644eea;IngestionEndpoint=https://southeastasia-1.in.applicationinsights.azure.com/;LiveEndpoint=https://southeastasia.livediagnostics.monitor.azure.com/;ApplicationId=ef8dfa52-f89b-4986-b548-853ebfb690f4')
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
