@@ -5,7 +5,7 @@ import socket
 import logging
 
 # App Insights
-from opencensus.ext.azure.log_exporter import AzureEventHandler
+from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure import metrics_exporter
 from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
@@ -16,7 +16,7 @@ connectionString = 'InstrumentationKey=3432435e-3359-4271-8794-d18f0f89dbb2'
 
 # Logging
 logger = logging.getLogger(__name__)
-handler = AzureEventHandler(connection_string=connectionString)
+handler = AzureLogHandler(connection_string=connectionString)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 logger.info('Hello, Nguyen Hai Dang')
